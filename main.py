@@ -112,10 +112,15 @@ async def single_message_handler(event):
 async def main():
     while True:
         try:
-            await client.start(PHONE_NUMBER)
+            await client.connect()
+            if not await client.is_user_authorized():
+                await client.send_code_request(PHONE_NUMBER)
+                code = input("Введи код, що прийшов у Telegram: ")
+                await client.sign_in(PHONE_NUMBER, code)
+
             try:
                 for source_id in SOURCE_CHANNEL_IDS:
-                    source = await client.get_entity(source_id)
+                    await client.get_entity(source_id)
                 destination = await client.get_entity(DESTINATION_CHAT_ID)
                 logger.info(
                     f"Бот слухає канали {SOURCE_CHANNEL_IDS}, "
@@ -124,13 +129,16 @@ async def main():
             except ValueError as e:
                 logger.error(f"Помилка доступу: {e}")
                 return
+
             session_file = os.path.join(session_dir, 'session_name.session')
             if os.path.exists(session_file):
                 os.chmod(session_file, 0o600)
+
             await client.run_until_disconnected()
         except Exception as e:
             logger.error(f"Помилка: {e}. Повторне підключення через 10 секунд...")
             await asyncio.sleep(10)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
