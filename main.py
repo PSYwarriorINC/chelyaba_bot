@@ -115,7 +115,7 @@ async def main():
             await client.connect()
             if not await client.is_user_authorized():
                 await client.send_code_request(PHONE_NUMBER)
-                code = input("Введи код, що прийшов у Telegram: ")
+                code = '62821'.strip()
                 await client.sign_in(PHONE_NUMBER, code)
 
             try:
